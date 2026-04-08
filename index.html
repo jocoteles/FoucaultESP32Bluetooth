@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pêndulo de Foucault - Controle</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a192f">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        :root {
+            --bg-color: #0a192f;
+            --card-bg: rgba(17, 34, 64, 0.7);
+            --primary-color: #64ffda;
+            --text-color: #ccd6f6;
+            --text-dim: #8892b0;
+            --accent-glow: rgba(100, 255, 218, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .status-bar {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px -15px rgba(2, 12, 27, 0.7);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ff4d4d;
+            box-shadow: 0 0 10px #ff4d4d;
+        }
+
+        .dot.connected {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        button.connect-btn {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        button.connect-btn:hover {
+            background-color: var(--accent-glow);
+        }
+
+        button.connect-btn:active {
+            transform: scale(0.95);
+        }
+
+        .auth-bar {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            display: flex;
+        }
+
+        .auth-bar input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .auth-bar input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(100, 255, 218, 0.2);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            border-color: rgba(100, 255, 218, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .label {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .info {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* Responsive Improvements */
+        @media (min-width: 1024px) {
+            .controls-grid {
+                grid-template-columns: 1fr 1fr;
+                max-width: 800px;
+            }
+
+            header,
+            .status-bar {
+                max-width: 800px;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-bg);
+            color: var(--text-color);
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: 1px solid var(--primary-color);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Pêndulo de Foucault CCA/UFSCar</h1>
+    </header>
+
+    <div class="status-bar">
+        <div class="status-indicator">
+            <div id="connection-dot" class="dot"></div>
+            <span id="connection-status">Desconectado</span>
+        </div>
+        <button id="connect-btn" class="connect-btn">Conectar</button>
+    </div>
+
+    <div class="auth-bar" id="auth-bar">
+        <input type="password" id="admin-pass" placeholder="Senha do Pêndulo">
+    </div>
+
+    <div class="controls-grid" id="controls" style="opacity: 0.5; pointer-events: none;">
+        <!-- Np -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">Impulsos seguidos (Np)</span>
+                <span id="val-Np" class="value">8</span>
+            </div>
+            <div class="input-group">
+                <input type="range" id="slider-Np" min="0" max="32" step="1" value="8">
+                <div class="info">Min: 0 | Max: 32</div>
+            </div>
+        </div>
+
+        <!-- tp -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">Duração (tp)</span>
+                <span id="val-tp" class="value">300ms</span>
+            </div>
+            <div class="input-group">
+                <input type="range" id="slider-tp" min="0" max="1000" step="10" value="300">
+                <div class="info">Min: 0 | Max: 1000ms</div>
+            </div>
+        </div>
+
+        <!-- Von -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">Tensão Trabalho (Von)</span>
+                <span id="val-Von" class="value">2.2V</span>
+            </div>
+            <div class="input-group">
+                <input type="range" id="slider-Von" min="0" max="3.3" step="0.05" value="2.2">
+                <div class="info">Min: 0V | Max: 3.3V</div>
+            </div>
+        </div>
+
+        <!-- Vprobing -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">Tensão Sondagem (Vprob)</span>
+                <span id="val-Vprobing" class="value">0.46V</span>
+            </div>
+            <div class="input-group">
+                <input type="range" id="slider-Vprobing" min="0" max="0.6" step="0.01" value="0.46">
+                <div class="info">Min: 0V | Max: 0.6V</div>
+            </div>
+        </div>
+
+        <!-- fp -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">Tolerância detecção (fp)</span>
+                <span id="val-fp" class="value">0.90</span>
+            </div>
+            <div class="input-group">
+                <input type="range" id="slider-fp" min="0.01" max="0.99" step="0.01" value="0.90">
+                <div class="info">Min: 0.01 | Max: 0.99</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Mensagem aqui</div>
+
+    <script>
+        const SERVICE_UUID = "287f2128-568f-46a5-9231-25a01f2fc48b";
+        const CHAR_UUID = "c9f1b2cf-11de-4d3c-a05a-27a4490e1b47";
+
+        let bleDevice = null;
+        let bleCharacteristic = null;
+        let pollInterval = null;
+
+        const connectBtn = document.getElementById('connect-btn');
+        const statusText = document.getElementById('connection-status');
+        const statusDot = document.getElementById('connection-dot');
+        const controlsContainer = document.getElementById('controls');
+        const toast = document.getElementById('toast');
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function connectBLE() {
+            try {
+                console.log("Requisitando dispositivo Bluetooth...");
+                bleDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [SERVICE_UUID] }]
+                });
+
+                bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+                console.log("Conectando ao servidor GATT...");
+                const server = await bleDevice.gatt.connect();
+
+                console.log("Obtendo serviço...");
+                const service = await server.getPrimaryService(SERVICE_UUID);
+
+                console.log("Obtendo característica...");
+                bleCharacteristic = await service.getCharacteristic(CHAR_UUID);
+
+                statusText.textContent = "Conectado";
+                statusDot.classList.add('connected');
+                connectBtn.textContent = "Desconectar";
+                controlsContainer.style.opacity = "1";
+                controlsContainer.style.pointerEvents = "all";
+
+                showToast("Conectado com sucesso!");
+
+                // Carregamento inicial
+                await fetchValues();
+
+                // Iniciar poll de 3 segundos para live updates
+                pollInterval = setInterval(fetchValues, 3000);
+
+            } catch (error) {
+                console.error("Erro BLE:", error);
+                showToast("Falha na conexão: " + error.message);
+            }
+        }
+
+        function onDisconnected() {
+            statusText.textContent = "Desconectado";
+            statusDot.classList.remove('connected');
+            connectBtn.textContent = "Conectar";
+            controlsContainer.style.opacity = "0.5";
+            controlsContainer.style.pointerEvents = "none";
+            if (pollInterval) clearInterval(pollInterval);
+            showToast("Conexão perdida.");
+        }
+
+        async function fetchValues() {
+            if (!bleCharacteristic) return;
+            try {
+                const value = await bleCharacteristic.readValue();
+                const decoder = new TextDecoder();
+                const jsonText = decoder.decode(value);
+                console.log("Valores recebidos:", jsonText);
+                const data = JSON.parse(jsonText);
+                updateUI(data);
+            } catch (e) {
+                console.warn("Erro ao buscar valores:", e);
+            }
+        }
+
+        function updateUI(data) {
+            for (const key in data) {
+                const slider = document.getElementById(`slider-${key}`);
+                const valLabel = document.getElementById(`val-${key}`);
+                if (slider && valLabel) {
+                    // Só atualizamos se o usuário não estiver segurando o slider
+                    if (document.activeElement !== slider) {
+                        slider.value = data[key];
+                        let displayVal = data[key];
+                        if (key === 'tp') displayVal += 'ms';
+                        if (key === 'Von' || key === 'Vprobing') displayVal += 'V';
+                        valLabel.textContent = displayVal;
+                    }
+                }
+            }
+        }
+
+        async function sendUpdate(key, value) {
+            if (!bleCharacteristic) return;
+            try {
+                const pass = document.getElementById('admin-pass').value;
+                const payloadObj = { set: { [key]: value } };
+                if (pass) {
+                    payloadObj.auth = pass;
+                }
+                const payload = JSON.stringify(payloadObj);
+                const encoder = new TextEncoder();
+                await bleCharacteristic.writeValue(encoder.encode(payload));
+                console.log("Update enviado:", payload);
+            } catch (e) {
+                showToast("Erro ao enviar: " + e.message);
+            }
+        }
+
+        // Event listeners para controles
+        ['Np', 'tp', 'Von', 'Vprobing', 'fp'].forEach(key => {
+            const slider = document.getElementById(`slider-${key}`);
+            const valLabel = document.getElementById(`val-${key}`);
+
+            slider.addEventListener('input', (e) => {
+                let displayVal = e.target.value;
+                if (key === 'tp') displayVal += 'ms';
+                if (key === 'Von' || key === 'Vprobing') displayVal += 'V';
+                valLabel.textContent = displayVal;
+            });
+
+            slider.addEventListener('change', (e) => {
+                let val = parseFloat(e.target.value);
+                if (key === 'Np' || key === 'tp') val = parseInt(val);
+                sendUpdate(key, val);
+            });
+        });
+
+        connectBtn.addEventListener('click', () => {
+            if (bleDevice && bleDevice.gatt.connected) {
+                bleDevice.gatt.disconnect();
+            } else {
+                connectBLE();
+            }
+        });
+
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('SW registrado', reg))
+                    .catch(err => console.log('SW erro', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
