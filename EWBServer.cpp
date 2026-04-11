@@ -17,6 +17,7 @@ void EWBServer::begin(const char* deviceName, VariableConfig* vars, int numVars)
   Serial.println("Starting EWBServer BLE...");
 
   BLEDevice::init(deviceName);
+  BLEDevice::setMTU(512);
   BLEServer *pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks(&this->clientConnected));
   BLEService *pService = pServer->createService(SERVICE_UUID);
