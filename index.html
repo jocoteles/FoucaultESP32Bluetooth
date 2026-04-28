@@ -244,6 +244,115 @@
         .toast.show {
             transform: translateX(-50%) translateY(0);
         }
+
+        /* Tabs Styling */
+        .tabs-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            color: var(--text-dim);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: var(--accent-glow);
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Improved Card for Parameters */
+        .param-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .numeric-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: var(--text-color);
+            padding: 8px 12px;
+            width: 80px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .numeric-input:focus {
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .send-btn {
+            background: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.3);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .current-val-tag {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-card h2 {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
     </style>
 </head>
 
@@ -253,76 +362,109 @@
         <h1>Pêndulo de Foucault CCA/UFSCar</h1>
     </header>
 
-    <div class="status-bar">
-        <div class="status-indicator">
-            <div id="connection-dot" class="dot"></div>
-            <span id="connection-status">Desconectado</span>
-        </div>
-        <button id="connect-btn" class="connect-btn">Conectar</button>
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('connection')">Conexão</button>
+        <button class="tab-btn" id="tab-btn-params" onclick="switchTab('parameters')" disabled>Parâmetros</button>
     </div>
 
-    <div class="auth-bar" id="auth-bar">
-        <input type="password" id="admin-pass" placeholder="Senha do Pêndulo">
+    <!-- ABA 1: CONEXÃO -->
+    <div id="tab-connection" class="tab-content active">
+        <div class="auth-card">
+            <h2>Acesso ao Dispositivo</h2>
+            <div class="status-bar" style="margin-bottom: 0; padding: 10px; background: transparent; border: none; box-shadow: none;">
+                <div class="status-indicator">
+                    <div id="connection-dot" class="dot"></div>
+                    <span id="connection-status">Desconectado</span>
+                </div>
+            </div>
+            
+            <div class="auth-bar" style="margin-bottom: 10px;">
+                <input type="password" id="admin-pass" placeholder="Senha do Pêndulo">
+            </div>
+            
+            <button id="connect-btn" class="connect-btn" style="width: 100%; padding: 15px; font-size: 1rem;">Conectar</button>
+            <p id="auth-msg" style="font-size: 0.8rem; color: var(--text-dim); text-align: center; margin-top: 5px;">
+                Conecte-se para acessar os controles.
+            </p>
+        </div>
     </div>
 
-    <div class="controls-grid" id="controls" style="opacity: 0.5; pointer-events: none;">
-        <!-- Np -->
-        <div class="card">
-            <div class="card-header">
-                <span class="label">Impulsos seguidos (Np)</span>
-                <span id="val-Np" class="value">8</span>
+    <!-- ABA 2: PARÂMETROS -->
+    <div id="tab-parameters" class="tab-content">
+        <div class="controls-grid" id="controls">
+            <!-- Np -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="label">Impulsos seguidos (Np)</span>
+                </div>
+                <div class="param-row">
+                    <div style="flex: 1;">
+                        <div class="current-val-tag">Atual: <span id="val-Np">--</span></div>
+                        <input type="number" id="input-Np" class="numeric-input" min="0" max="32" value="8">
+                    </div>
+                    <button class="send-btn" onclick="handleSend('Np')">ENVIAR</button>
+                </div>
+                <div class="info">Range: 0 - 32</div>
             </div>
-            <div class="input-group">
-                <input type="range" id="slider-Np" min="0" max="32" step="1" value="8">
-                <div class="info">Min: 0 | Max: 32</div>
-            </div>
-        </div>
 
-        <!-- tp -->
-        <div class="card">
-            <div class="card-header">
-                <span class="label">Duração (tp)</span>
-                <span id="val-tp" class="value">300ms</span>
+            <!-- tp -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="label">Duração (tp)</span>
+                </div>
+                <div class="param-row">
+                    <div style="flex: 1;">
+                        <div class="current-val-tag">Atual: <span id="val-tp">--</span>ms</div>
+                        <input type="number" id="input-tp" class="numeric-input" min="0" max="1000" step="10" value="300">
+                    </div>
+                    <button class="send-btn" onclick="handleSend('tp')">ENVIAR</button>
+                </div>
+                <div class="info">Range: 0 - 1000ms</div>
             </div>
-            <div class="input-group">
-                <input type="range" id="slider-tp" min="0" max="1000" step="10" value="300">
-                <div class="info">Min: 0 | Max: 1000ms</div>
-            </div>
-        </div>
 
-        <!-- Von -->
-        <div class="card">
-            <div class="card-header">
-                <span class="label">Tensão Trabalho (Von)</span>
-                <span id="val-Von" class="value">2.2V</span>
+            <!-- Von -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="label">Tensão Trabalho (Von)</span>
+                </div>
+                <div class="param-row">
+                    <div style="flex: 1;">
+                        <div class="current-val-tag">Atual: <span id="val-Von">--</span>V</div>
+                        <input type="number" id="input-Von" class="numeric-input" min="0" max="3.3" step="0.05" value="2.2">
+                    </div>
+                    <button class="send-btn" onclick="handleSend('Von')">ENVIAR</button>
+                </div>
+                <div class="info">Range: 0 - 3.3V</div>
             </div>
-            <div class="input-group">
-                <input type="range" id="slider-Von" min="0" max="3.3" step="0.05" value="2.2">
-                <div class="info">Min: 0V | Max: 3.3V</div>
-            </div>
-        </div>
 
-        <!-- Vprobing -->
-        <div class="card">
-            <div class="card-header">
-                <span class="label">Tensão Sondagem (Vprob)</span>
-                <span id="val-Vprobing" class="value">0.46V</span>
+            <!-- Vprobing -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="label">Tensão Sondagem (Vprob)</span>
+                </div>
+                <div class="param-row">
+                    <div style="flex: 1;">
+                        <div class="current-val-tag">Atual: <span id="val-Vprobing">--</span>V</div>
+                        <input type="number" id="input-Vprobing" class="numeric-input" min="0" max="0.6" step="0.01" value="0.46">
+                    </div>
+                    <button class="send-btn" onclick="handleSend('Vprobing')">ENVIAR</button>
+                </div>
+                <div class="info">Range: 0 - 0.6V</div>
             </div>
-            <div class="input-group">
-                <input type="range" id="slider-Vprobing" min="0" max="0.6" step="0.01" value="0.46">
-                <div class="info">Min: 0V | Max: 0.6V</div>
-            </div>
-        </div>
 
-        <!-- fp -->
-        <div class="card">
-            <div class="card-header">
-                <span class="label">Tolerância detecção (fp)</span>
-                <span id="val-fp" class="value">0.90</span>
-            </div>
-            <div class="input-group">
-                <input type="range" id="slider-fp" min="0.01" max="0.99" step="0.01" value="0.90">
-                <div class="info">Min: 0.01 | Max: 0.99</div>
+            <!-- fp -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="label">Tolerância detecção (fp)</span>
+                </div>
+                <div class="param-row">
+                    <div style="flex: 1;">
+                        <div class="current-val-tag">Atual: <span id="val-fp">--</span></div>
+                        <input type="number" id="input-fp" class="numeric-input" min="0.01" max="0.99" step="0.01" value="0.90">
+                    </div>
+                    <button class="send-btn" onclick="handleSend('fp')">ENVIAR</button>
+                </div>
+                <div class="info">Range: 0.01 - 0.99</div>
             </div>
         </div>
     </div>
@@ -341,8 +483,9 @@
         const connectBtn = document.getElementById('connect-btn');
         const statusText = document.getElementById('connection-status');
         const statusDot = document.getElementById('connection-dot');
-        const controlsContainer = document.getElementById('controls');
         const toast = document.getElementById('toast');
+        const tabBtnParams = document.getElementById('tab-btn-params');
+        const authMsg = document.getElementById('auth-msg');
 
         function showToast(msg) {
             toast.textContent = msg;
@@ -350,41 +493,103 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            // Find the button that corresponds to this tabId and activate it
+            const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(`'${tabId}'`));
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+
         async function connectBLE() {
             try {
-                console.log("Requisitando dispositivo Bluetooth...");
+                authMsg.textContent = "Solicitando dispositivo...";
                 bleDevice = await navigator.bluetooth.requestDevice({
                     filters: [{ services: [SERVICE_UUID] }]
                 });
 
                 bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
 
-                console.log("Conectando ao servidor GATT...");
+                authMsg.textContent = "Conectando ao GATT...";
                 const server = await bleDevice.gatt.connect();
 
-                console.log("Obtendo serviço...");
+                authMsg.textContent = "Obtendo serviço...";
                 const service = await server.getPrimaryService(SERVICE_UUID);
 
-                console.log("Obtendo característica...");
+                authMsg.textContent = "Obtendo característica...";
                 bleCharacteristic = await service.getCharacteristic(CHAR_UUID);
 
-                statusText.textContent = "Conectado";
+                statusText.textContent = "Verificando...";
                 statusDot.classList.add('connected');
-                connectBtn.textContent = "Desconectar";
-                controlsContainer.style.opacity = "1";
-                controlsContainer.style.pointerEvents = "all";
-
-                showToast("Conectado com sucesso!");
-
-                // Carregamento inicial
-                await fetchValues();
-
-                // Iniciar poll de 3 segundos para live updates
-                pollInterval = setInterval(fetchValues, 3000);
+                
+                // Iniciar verificação de segurança em background
+                const verified = await verifyConnection();
+                
+                if (verified) {
+                    statusText.textContent = "Conectado";
+                    connectBtn.textContent = "Desconectar";
+                    tabBtnParams.disabled = false;
+                    authMsg.textContent = "Verificado com sucesso! Acesse a aba Parâmetros.";
+                    authMsg.style.color = "var(--primary-color)";
+                    showToast("Conexão Verificada!");
+                    
+                    // Carregamento inicial e polling
+                    await fetchValues();
+                    pollInterval = setInterval(fetchValues, 3000);
+                    
+                    // Mudar para aba de parâmetros automaticamente
+                    setTimeout(() => {
+                        document.getElementById('tab-btn-params').click();
+                    }, 1000);
+                } else {
+                    authMsg.textContent = "Falha na verificação. Verifique a senha.";
+                    authMsg.style.color = "#ff4d4d";
+                    statusText.textContent = "Erro de Autenticação";
+                    if (bleDevice) bleDevice.gatt.disconnect();
+                }
 
             } catch (error) {
                 console.error("Erro BLE:", error);
-                showToast("Falha na conexão: " + error.message);
+                showToast("Falha: " + error.message);
+                authMsg.textContent = "Erro: " + error.message;
+            }
+        }
+
+        async function verifyConnection() {
+            try {
+                authMsg.textContent = "Validando comunicação...";
+                // 1. Ler Np atual
+                const data = await readValues();
+                if (!data) return false;
+                const originalNp = data.Np;
+
+                // 2. Tentar mudar Np para Np + 1
+                await sendUpdate('Np', originalNp + 1);
+                
+                // Pequeno delay para o ESP processar
+                await new Promise(r => setTimeout(r, 500));
+
+                // 3. Ler novamente
+                const data2 = await readValues();
+                if (!data2 || data2.Np !== (originalNp + 1)) {
+                    return false;
+                }
+
+                // 4. Voltar para original
+                await sendUpdate('Np', originalNp);
+                
+                await new Promise(r => setTimeout(r, 500));
+                
+                // 5. Confirmação final
+                const data3 = await readValues();
+                return data3 && data3.Np === originalNp;
+
+            } catch (e) {
+                console.error("Erro na verificação:", e);
+                return false;
             }
         }
 
@@ -392,41 +597,43 @@
             statusText.textContent = "Desconectado";
             statusDot.classList.remove('connected');
             connectBtn.textContent = "Conectar";
-            controlsContainer.style.opacity = "0.5";
-            controlsContainer.style.pointerEvents = "none";
+            tabBtnParams.disabled = true;
+            authMsg.textContent = "Conecte-se para acessar os controles.";
+            authMsg.style.color = "var(--text-dim)";
             if (pollInterval) clearInterval(pollInterval);
+            switchTab('connection');
             showToast("Conexão perdida.");
         }
 
-        async function fetchValues() {
-            if (!bleCharacteristic) return;
+        async function readValues() {
+            if (!bleCharacteristic) return null;
             try {
                 const value = await bleCharacteristic.readValue();
                 const decoder = new TextDecoder();
                 const jsonText = decoder.decode(value);
-                console.log("Valores recebidos:", jsonText);
-                const data = JSON.parse(jsonText);
-                updateUI(data);
+                return JSON.parse(jsonText);
             } catch (e) {
-                console.warn("Erro ao buscar valores:", e);
+                return null;
+            }
+        }
+
+        async function fetchValues() {
+            const data = await readValues();
+            if (data) {
+                updateUI(data);
             }
         }
 
         function updateUI(data) {
             for (const key in data) {
-                const slider = document.getElementById(`slider-${key}`);
                 const valLabel = document.getElementById(`val-${key}`);
-                if (slider && valLabel) {
-                    // Evita conflito com o que o usuário está segurando
-                    // ou editou recentemente (evita bounce)
-                    const recentlyEdited = lastEditTime[key] && (Date.now() - lastEditTime[key] < 2000);
-                    if (document.activeElement !== slider && !recentlyEdited) {
-                        slider.value = data[key];
-                        let displayVal = data[key];
-                        if (key === 'tp') displayVal += 'ms';
-                        if (key === 'Von' || key === 'Vprobing') displayVal += 'V';
-                        valLabel.textContent = displayVal;
-                    }
+                const input = document.getElementById(`input-${key}`);
+                if (valLabel) {
+                    valLabel.textContent = data[key];
+                }
+                // Só atualiza o input se o usuário não estiver mexendo nele
+                if (input && document.activeElement !== input) {
+                    input.value = data[key];
                 }
             }
         }
@@ -442,31 +649,36 @@
                 const payload = JSON.stringify(payloadObj);
                 const encoder = new TextEncoder();
                 await bleCharacteristic.writeValue(encoder.encode(payload));
-                console.log("Update enviado:", payload);
+                console.log("Enviado:", payload);
             } catch (e) {
                 showToast("Erro ao enviar: " + e.message);
+                throw e;
             }
         }
 
-        // Event listeners para controles
-        ['Np', 'tp', 'Von', 'Vprobing', 'fp'].forEach(key => {
-            const slider = document.getElementById(`slider-${key}`);
-            const valLabel = document.getElementById(`val-${key}`);
-
-            slider.addEventListener('input', (e) => {
-                let displayVal = e.target.value;
-                if (key === 'tp') displayVal += 'ms';
-                if (key === 'Von' || key === 'Vprobing') displayVal += 'V';
-                valLabel.textContent = displayVal;
-            });
-
-            slider.addEventListener('change', (e) => {
-                let val = parseFloat(e.target.value);
-                if (key === 'Np' || key === 'tp') val = parseInt(val);
-                lastEditTime[key] = Date.now();
-                sendUpdate(key, val);
-            });
-        });
+        async function handleSend(key) {
+            const input = document.getElementById(`input-${key}`);
+            let val = parseFloat(input.value);
+            if (key === 'Np' || key === 'tp') val = parseInt(val);
+            
+            try {
+                showToast(`Enviando ${key}...`);
+                await sendUpdate(key, val);
+                
+                // Verificação pós-envio
+                setTimeout(async () => {
+                    const data = await readValues();
+                    if (data && data[key] == val) {
+                        showToast(`${key} atualizado com sucesso!`);
+                        updateUI(data);
+                    } else {
+                        showToast(`AVISO: Falha ao confirmar ${key}. Verifique a senha.`);
+                    }
+                }, 800);
+            } catch (e) {
+                showToast("Erro: " + e.message);
+            }
+        }
 
         connectBtn.addEventListener('click', () => {
             if (bleDevice && bleDevice.gatt.connected) {
