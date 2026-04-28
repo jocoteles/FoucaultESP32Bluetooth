@@ -466,6 +466,21 @@
                 </div>
                 <div class="info">Range: 0.01 - 0.99</div>
             </div>
+
+            <!-- ton -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="label">Duração Pulso (ton)</span>
+                </div>
+                <div class="param-row">
+                    <div style="flex: 1;">
+                        <div class="current-val-tag">Atual: <span id="val-ton">--</span>ms</div>
+                        <input type="number" id="input-ton" class="numeric-input" min="50" max="500" step="1" value="200">
+                    </div>
+                    <button class="send-btn" onclick="handleSend('ton')">ENVIAR</button>
+                </div>
+                <div class="info">Range: 50 - 500ms</div>
+            </div>
         </div>
     </div>
 
@@ -659,7 +674,7 @@
         async function handleSend(key) {
             const input = document.getElementById(`input-${key}`);
             let val = parseFloat(input.value);
-            if (key === 'Np' || key === 'tp') val = parseInt(val);
+            if (key === 'Np' || key === 'tp' || key === 'ton') val = parseInt(val);
             
             try {
                 showToast(`Enviando ${key}...`);

@@ -29,7 +29,9 @@ uint8_t Np = 8;
 
 const uint32_t T = 3460;  //pendulum period [ms]
 
-uint32_t tp = 300;  //impulse duration [ms] 300
+uint32_t tp = 300;  //delay before pulse sequence [ms] 300
+uint32_t ton = 200;  //pulse on duration [ms] 200
+uint32_t toff = T/2 - ton;  //pulse off duration [ms]
 
 const uint32_t interProbingDelay = 70; // [microsegundos]
 
@@ -43,7 +45,8 @@ VariableConfig configurableVariables[] = {
   {"tp",       TYPE_INT,   300,  0.0f,  "",  0,    1000, true},
   {"Von",      TYPE_FLOAT, 0,    2.2f,  "",  0.0f, 3.3f, true},
   {"Vprobing", TYPE_FLOAT, 0,    0.46f, "",  0.0f, 0.6f, true},
-  {"fp",       TYPE_FLOAT, 0,    0.90f, "",  0.01f, 0.99f, true}
+  {"fp",       TYPE_FLOAT, 0,    0.90f, "",  0.01f, 0.99f, true},
+  {"ton",      TYPE_INT,   200,  0.0f,  "",  50,   500,  true}
 };
 const int numConfigurableVariables = sizeof(configurableVariables) / sizeof(configurableVariables[0]);
 
@@ -53,6 +56,10 @@ void onVariableChanged(const char* varName) {
     if (strcmp(varName, "Von") == 0)      Von = configurableVariables[2].floatValue;
     if (strcmp(varName, "Vprobing") == 0) Vprobing = configurableVariables[3].floatValue;
     if (strcmp(varName, "fp") == 0)       fp = configurableVariables[4].floatValue;
+    if (strcmp(varName, "ton") == 0)      {
+        ton = (uint32_t)configurableVariables[5].intValue;
+        toff = T/2 - ton;
+    }
     Serial.printf("Variable %s updated via Bluetooth\n", varName);
 }
 float V; //voltagem
@@ -108,12 +115,12 @@ void loop() {
   }
   if (!firstReading) {    
     if (probeReading < fp*pastReading) {          
-      delay(T/4 + tp);
+      delay(tp);
       for (i = 0; i < Np; i++) {
-        dacWrite(pinVtip, dacLevelFromVoltage(Von));      
-        delay(T/4);
-        dacWrite(pinVtip, dacLevelFromVoltage(0.0));
-        delay(T/4);
+        dacWrite(pinVtip, dacLevelFromVoltage(0.0));      
+        delay(toff);
+        dacWrite(pinVtip, dacLevelFromVoltage(Von));
+        delay(ton);
       }
       firstReading = true;
     }
